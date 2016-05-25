@@ -1,0 +1,33 @@
+---
+  name: "get"
+  runner_type: "run-python"
+  description: "Retrieve data using the LiveStatus API.  Reference: https://mathias-kettner.de/checkmk_livestatus.html"
+  enabled: true
+  entry_point: "get_data.py"
+  parameters:
+    table:
+      type: "string"
+      description: "The table to be queried."
+      required: true
+    columns:
+      type: array
+      description: "A list of columns to retrieve in the result set."
+      required: false
+    filters:
+      type: array
+      description: "A list of filters to use as criterion for the result set."
+      required: false
+    stats:
+      type: array
+      description: "A list of basic statistical operations to run."
+      required: false
+    limit:
+      type: "string"
+      description: "Limit the number of rows being displayed in the result set."
+      required: false
+    output_format:
+      type: "string"
+      description: "Result format, JSON, Python or CSV. (Only JSON is implemented)"
+      required: false
+
+

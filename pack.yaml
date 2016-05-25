@@ -1,0 +1,6 @@
+---
+name: livestatus
+description: Shinken/Nagios LiveStatus Actions/Sensors for StackStorm
+version: 0.1.0
+author: Carlos
+email: nzlosh@yahoo.com
