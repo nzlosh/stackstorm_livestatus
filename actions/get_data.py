@@ -81,20 +81,22 @@ class Get(Action):
         postfix = "\n"
         return "{}{}{}".format(prefix, " ".join(columns), postfix)
 
+
     def _process_filters(self, filters):
         prefix = "Filter: "
         postfix = "\n"
         tmp = ""
-        for filter in filters:
-            tmp = tmp + "{}{}{}\n".format(prefix, filter, postfix)
+        for _filter in filters:
+            tmp += "{}{}{}\n".format(prefix, _filter, postfix)
         return tmp
+
 
     def _process_stats(self, stats):
         prefix = "Stats: "
         postfix = "\n"
         tmp = ""
         for stat in stats:
-            tmp = tmp + "{}{}{}\n".format(prefix, stat, postfix)
+            tmp += "{}{}{}\n".format(prefix, stat, postfix)
         return tmp
 
 
