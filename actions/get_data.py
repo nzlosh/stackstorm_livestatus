@@ -77,7 +77,7 @@ class Get(Action):
 
 
     def _process_columns(self, columns):
-        prefix = "Columns:"
+        prefix = "Columns: "
         postfix = "\n"
         return "{}{}{}".format(prefix, " ".join(columns), postfix)
 
