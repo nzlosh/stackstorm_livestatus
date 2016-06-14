@@ -29,7 +29,6 @@ class LiveStatus(object):
         return answer
 
     def get_json(self, query):
-        answer = self.execute(query.rstrip() + '\nOutputFormat: json\n')
         try:
             return json.loads(answer)
         except ValueError:
@@ -48,7 +47,7 @@ class Get(Action):
     limit: Not supported by Shinken.
     output_format: Not implemented, JSON is only supported.
     """
-    def run(self, table="", columns=None, filters=None, stats=None, limit=None, output_format="json"):
+    def run(self, table='', columns=None, filters=None, stats=None, limit=None, output_format=None):
 
         host = self.config['host']
         port = self.config['port']
@@ -57,19 +56,22 @@ class Get(Action):
 
         live_status = LiveStatus(host, port)
 
-        query = "GET {}\n".format(table)
+        query = 'GET {}\n'.format(table)
 
         if columns:
-            query = query + self._process_columns(columns)
+            query += self._process_columns(columns)
 
         if filters:
-            query = query + self._process_filters(filters)
+            query += self._process_filters(filters)
 
         if stats:
-            query = query + self._process_stats(stats)
+            query += self._process_stats(stats)
 
         if limit:
-            query = query + "Limit: {}".format(limit)
+            query += 'Limit: {}'.format(limit)
+
+        if output_format:
+            query += '\nOutputFormat: json\n'
 
         result = live_status.get_json(query)
 
@@ -77,26 +79,26 @@ class Get(Action):
 
 
     def _process_columns(self, columns):
-        prefix = "Columns: "
-        postfix = "\n"
-        return "{}{}{}".format(prefix, " ".join(columns), postfix)
+        prefix = 'Columns: '
+        postfix = '\n'
+        return '{}{}{}'.format(prefix, ' '.join(columns), postfix)
 
 
     def _process_filters(self, filters):
-        prefix = "Filter: "
-        postfix = "\n"
-        tmp = ""
+        prefix = 'Filter: '
+        postfix = '\n'
+        tmp = ''
         for _filter in filters:
-            tmp += "{}{}{}\n".format(prefix, _filter, postfix)
+            tmp += '{}{}{}\n'.format(prefix, _filter, postfix)
         return tmp
 
 
     def _process_stats(self, stats):
-        prefix = "Stats: "
-        postfix = "\n"
-        tmp = ""
+        prefix = 'Stats: '
+        postfix = '\n'
+        tmp = ''
         for stat in stats:
-            tmp += "{}{}{}\n".format(prefix, stat, postfix)
+            tmp += '{}{}{}\n'.format(prefix, stat, postfix)
         return tmp
 
 
