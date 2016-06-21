@@ -7,11 +7,13 @@ import json
 LOG = logging.getLogger(__name__)
 
 
+
 class LiveStatus(object):
     def __init__(self, host, port, max_recv=4096):
         self.host = host
         self.port = int(port)
         self.max_recv = int(max_recv)
+
 
     def execute(self, query):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,11 +30,9 @@ class LiveStatus(object):
             buf = s.recv(self.max_recv)
         return answer
 
+
     def get_json(self, query):
-        try:
-            return json.loads(answer)
-        except ValueError:
-            return []
+        return json.loads(query)
 
 
 
@@ -47,7 +47,7 @@ class Get(Action):
     limit: Not supported by Shinken.
     output_format: Not implemented, JSON is only supported.
     """
-    def run(self, table='', columns=None, filters=None, stats=None, limit=None, output_format=None):
+    def run(self, table='', columns=None, filters=None, stats=None, limit=None, output_format="json"):
 
         host = self.config['host']
         port = self.config['port']
@@ -68,12 +68,13 @@ class Get(Action):
             query += self._process_stats(stats)
 
         if limit:
-            query += 'Limit: {}'.format(limit)
+            query += 'Limit: {}\n'.format(limit)
 
-        if output_format:
-            query += '\nOutputFormat: json\n'
-
-        result = live_status.get_json(query)
+        if output_format.lower() == 'json':
+            query += 'OutputFormat: json\n',
+            result = live_status.get_json(query)
+        else:
+            result = live_status.execute(query)
 
         return result
 
@@ -89,7 +90,10 @@ class Get(Action):
         postfix = '\n'
         tmp = ''
         for _filter in filters:
-            tmp += '{}{}{}\n'.format(prefix, _filter, postfix)
+            tmp += '{}{}{}'.format(prefix, _filter, postfix)
+        else:
+            postfix = ''
+        tmp += postfix
         return tmp
 
 
@@ -98,7 +102,10 @@ class Get(Action):
         postfix = '\n'
         tmp = ''
         for stat in stats:
-            tmp += '{}{}{}\n'.format(prefix, stat, postfix)
+            tmp += '{}{}{}'.format(prefix, stat, postfix)
+        else:
+            postfix = ''
+        tmp += postfix
         return tmp
 
 

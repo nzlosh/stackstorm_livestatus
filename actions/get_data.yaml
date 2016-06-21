@@ -29,5 +29,4 @@
       type: "string"
       description: "Result format, JSON, Python or CSV. (Only JSON is implemented)"
       required: false
-
-
+      default: json
