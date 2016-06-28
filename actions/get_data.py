@@ -32,7 +32,7 @@ class LiveStatus(object):
 
 
     def get_json(self, query):
-        return json.loads(query)
+        return json.loads(self.execute(query))
 
 
 
@@ -71,7 +71,7 @@ class Get(Action):
             query += 'Limit: {}\n'.format(limit)
 
         if output_format.lower() == 'json':
-            query += 'OutputFormat: json\n',
+            query += 'OutputFormat: json\n'
             result = live_status.get_json(query)
         else:
             result = live_status.execute(query)
