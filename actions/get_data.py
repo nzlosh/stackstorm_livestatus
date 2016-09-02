@@ -20,8 +20,7 @@ class LiveStatus(object):
         s.connect((self.host, self.port))
         LOG.debug('Sending LiveStatus query: {}'.format(query))
         s.send(query.encode('utf-8').rstrip() + '\n')
-        # Close sending direction. That way the other side knows we are
-        # finished.
+        # Close sending direction to indicate end of transmission.
         s.shutdown(socket.SHUT_WR)
         answer = ''
         buf = s.recv(self.max_recv)
@@ -52,10 +51,7 @@ class Get(Action):
         host = self.config['host']
         port = self.config['port']
 
-        LOG.debug('table: {}'.format(table))
-
         live_status = LiveStatus(host, port)
-
         query = 'GET {}\n'.format(table)
 
         if columns:
@@ -86,23 +82,17 @@ class Get(Action):
 
 
     def _process_filters(self, filters):
-        prefix = 'Filter: '
-        postfix = '\n'
-        tmp = ''
-        for _filter in filters:
-            tmp += '{}{}{}'.format(prefix, _filter, postfix)
-        else:
-            postfix = ''
-        tmp += postfix
-        return tmp
+        return self._build_list('Filter: ', '\n', stats)
 
 
     def _process_stats(self, stats):
-        prefix = 'Stats: '
-        postfix = '\n'
+        return self._build_list('Stats: ', '\n', stats)
+
+
+    def _build_list(self, prefix, postfix, query_list):
         tmp = ''
-        for stat in stats:
-            tmp += '{}{}{}'.format(prefix, stat, postfix)
+        for _item in items:
+            tmp += '{}{}{}'.format(prefix, _item, postfix)
         else:
             postfix = ''
         tmp += postfix
@@ -110,3 +100,13 @@ class Get(Action):
 
 
 
+class Command(Action):
+    """
+    Execute Nagios/Shinken commands
+
+        COMMAND [$(date +%s)] START_EXECUTING_SVC_CHECKS
+
+    Perform acknowledges, downtimes etc.
+    """
+    def run():
+        return True
