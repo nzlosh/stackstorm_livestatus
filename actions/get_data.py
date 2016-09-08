@@ -5,10 +5,13 @@ import socket
 import json
 
 LOG = logging.getLogger(__name__)
-
+LS_EOL = '\n'
 
 
 class LiveStatus(object):
+    """
+    LiveStatus class provides network access to the Live status server.
+    """
     def __init__(self, host, port, max_recv=4096):
         self.host = host
         self.port = int(port)
@@ -16,21 +19,33 @@ class LiveStatus(object):
 
 
     def execute(self, query):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((self.host, self.port))
+        """
+        execute method sends the query to the live status server and
+        returns the result.
+
+        @query - a livestatus query.
+        """
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.connect((self.host, self.port))
         LOG.debug('Sending LiveStatus query: {}'.format(query))
-        s.send(query.encode('utf-8').rstrip() + '\n')
-        # Close sending direction to indicate end of transmission.
-        s.shutdown(socket.SHUT_WR)
+        server.send(query.encode('utf-8').rstrip() + LS_EOL)
+        # Notify server that transmission has finished.
+        server.shutdown(socket.SHUT_WR)
         answer = ''
-        buf = s.recv(self.max_recv)
+        buf = server.recv(self.max_recv)
         while buf:
             answer += buf
-            buf = s.recv(self.max_recv)
+            buf = server.recv(self.max_recv)
         return answer
 
 
     def get_json(self, query):
+        """
+        Parse the result of a live status query as JSON.
+
+        @query - a livestatus query. The query MUST request the result
+                 is returned in JSON format.
+        """
         return json.loads(self.execute(query))
 
 
@@ -38,21 +53,23 @@ class LiveStatus(object):
 class Get(Action):
     """
     LiveStatus Get class.
-
-    table: the table query.
-    columns: the columns to return in the dataset.
-    filters: conditions to filter result set.
-    stats: Calculate statistics held in data.
-    limit: Not supported by Shinken.
-    output_format: Not implemented, JSON is only supported.
     """
     def run(self, table='', columns=None, filters=None, stats=None, limit=None, output_format="json"):
+        """
+        The run method to be called by Stackstorm.
 
+        table - the table query.
+        columns - the columns to return in the dataset.
+        filters - conditions to filter result set.
+        stats - Calculate statistics held in data.
+        limit - Not supported by Shinken.
+        output_format - json or csv formats.
+        """
         host = self.config['host']
         port = self.config['port']
 
         live_status = LiveStatus(host, port)
-        query = 'GET {}\n'.format(table)
+        query = 'GET {}{}'.format(table, LS_EOL)
 
         if columns:
             query += self._process_columns(columns)
@@ -64,10 +81,10 @@ class Get(Action):
             query += self._process_stats(stats)
 
         if limit:
-            query += 'Limit: {}\n'.format(limit)
+            query += 'Limit: {}{}'.format(limit, LS_EOL)
 
         if output_format.lower() == 'json':
-            query += 'OutputFormat: json\n'
+            query += 'OutputFormat: json{}'.format(LS_EOL)
             result = live_status.get_json(query)
         else:
             result = live_status.execute(query)
@@ -76,20 +93,31 @@ class Get(Action):
 
 
     def _process_columns(self, columns):
-        prefix = 'Columns: '
-        postfix = '\n'
-        return '{}{}{}'.format(prefix, ' '.join(columns), postfix)
+        """
+        Convert columns list to livestatus formatted string.
+        """
+        return self._build_list('Columns: ', LS_EOL, [' '.join(columns)])
 
 
     def _process_filters(self, filters):
-        return self._build_list('Filter: ', '\n', stats)
+        """
+        Convert filters list to livestatus formatted string.
+        """
+        return self._build_list('Filter: ', LS_EOL, filters)
 
 
     def _process_stats(self, stats):
-        return self._build_list('Stats: ', '\n', stats)
+        """
+        Convert stats list to livestatus formatted string.
+        """
+        return self._build_list('Stats: ', LS_EOL, stats)
 
 
-    def _build_list(self, prefix, postfix, query_list):
+    def _build_list(self, prefix, postfix, items):
+        """
+        Loop over list items and apply a prefix/postfix to each element.
+        Returns a livestatus formatted string.
+        """
         tmp = ''
         for _item in items:
             tmp += '{}{}{}'.format(prefix, _item, postfix)
@@ -98,15 +126,3 @@ class Get(Action):
         tmp += postfix
         return tmp
 
-
-
-class Command(Action):
-    """
-    Execute Nagios/Shinken commands
-
-        COMMAND [$(date +%s)] START_EXECUTING_SVC_CHECKS
-
-    Perform acknowledges, downtimes etc.
-    """
-    def run():
-        return True

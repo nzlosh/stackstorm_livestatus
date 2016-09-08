@@ -1,0 +1,12 @@
+---
+  chain:
+    -
+      name: "lookup_host"
+      ref: "livestatus.get"
+      parameters:
+        table: hosts
+        columns:
+          - address
+        filters:
+          - name = {{host}}
+  default: "lookup_host"

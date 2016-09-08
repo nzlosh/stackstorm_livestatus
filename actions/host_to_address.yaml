@@ -1,0 +1,18 @@
+---
+# Action definition metadata
+name: "host_to_address"
+description: "Get the host address from the configuration by using the host name."
+
+# `runner_type` has value `action-chain` to identify that action is an ActionChain.
+runner_type: "action-chain"
+
+# `entry_point` path to the ActionChain definition file, relative to the pack's action directory.
+entry_point: "chains/host_to_address.yaml"
+
+enabled: true
+parameters:
+  host:
+    type: "string"
+    required: true
+    default: "localhost"
+
