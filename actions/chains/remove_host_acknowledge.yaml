@@ -1,0 +1,26 @@
+---
+  chain:
+    -
+      name: "contact_email"
+      ref: "livestatus.get"
+      parameters:
+        table: contact
+        columns:
+          - email
+        filters:
+          - name = {{name}}
+  default: "contact_email"
+'ACKNOWLEDGE_SVC_PROBLEM': {'global': False, 'args': ['service', 'to_int', 'to_bool', 'to_bool', 'author', None]},
+        'ACKNOWLEDGE_HOST_PROBLEM': {'global': False, 'args': ['host', 'to_int', 'to_bool', 'to_bool', 'author', None]},
+        
+        'DEL_HOST_COMMENT': {'global': True, 'args': ['to_int']},
+        'DEL_HOST_DOWNTIME': {'global': True, 'args': ['to_int']},
+        'DEL_SVC_COMMENT': {'global': True, 'args': ['to_int']},
+        'DEL_SVC_DOWNTIME': {'global': True, 'args': ['to_int']},
+
+'DISABLE_NOTIFICATIONS': {'global': True, 'args': []},
+
+'ENABLE_NOTIFICATIONS': {'global': True, 'args': []},
+
+        'REMOVE_HOST_ACKNOWLEDGEMENT': {'global': False, 'args': ['host']},
+        'REMOVE_SVC_ACKNOWLEDGEMENT': {'global': False, 'args': ['service']},

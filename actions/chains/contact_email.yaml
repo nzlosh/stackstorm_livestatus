@@ -1,0 +1,12 @@
+---
+  chain:
+    -
+      name: "contact_email"
+      ref: "livestatus.get"
+      parameters:
+        table: contact
+        columns:
+          - email
+        filters:
+          - name = {{name}}
+  default: "contact_email"

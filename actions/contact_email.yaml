@@ -1,0 +1,12 @@
+---
+name: "contact_email"
+description: "Get the contact name's email address."
+runner_type: "action-chain"
+entry_point: "chains/contact_email.yaml"
+enabled: true
+parameters:
+  name:
+    type: "string"
+    required: true
+    default: "nobody"
+
