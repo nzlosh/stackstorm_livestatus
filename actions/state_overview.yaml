@@ -1,0 +1,6 @@
+---
+name: "state_overview"
+description: "Return the count of service checks by state (OK, WARNING, CRITICAL or UNKNOWN)."
+runner_type: "action-chain"
+entry_point: "chains/state_overview.yaml"
+enabled: true

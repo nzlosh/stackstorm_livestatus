@@ -1,0 +1,12 @@
+---
+  chain:
+    -
+      name: "overview_stats"
+      ref: "livestatus.get"
+      parameters:
+        table: services
+        columns:
+          - state
+        stats:
+          - "state != 9999"
+  default: "overview_stats"

@@ -1,0 +1,11 @@
+---
+  host:
+    decription: "Livestatus host address"
+    type: "string"
+    secret: false
+    required: true
+  port:
+    description: "Livestatus listening port"
+    type:  "string"
+    secret: false
+    required: true
