@@ -1,0 +1,11 @@
+---
+name: "state_overview"
+action_ref: "livestatus.state_overview"
+description: "Get an overview of Service states via ChatOps"
+formats:
+  - "shinken service overview"
+ack:
+  enabled: false
+result:
+  enabled: true
+  format: Standard out says {{ execution.result.result }} ... \o/
