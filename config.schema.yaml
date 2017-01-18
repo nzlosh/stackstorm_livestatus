@@ -6,6 +6,6 @@
     required: true
   port:
     description: "Livestatus listening port"
-    type:  "string"
+    type:  "integer"
     secret: false
     required: true

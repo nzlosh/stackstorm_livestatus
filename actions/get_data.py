@@ -8,6 +8,37 @@ LOG = logging.getLogger(__name__)
 LS_EOL = '\n'
 
 
+class StatsItem(object):
+    """
+    The StatsItem class is used to convert logic operators to livestatus format as well as
+    return a correctly formatted string for livestatus queries.
+
+    The idea is to allow stackstorm to supply stats listed in the following manner:
+
+    ["state = 0", "host_up = 0", "&2"]
+
+    The above list would produce a LiveStatus query like the following:
+    Stats: state = 0
+    Stats: host_up = 0
+    StatsAnd: 2
+    """
+    def __init__(self, _item):
+        self.prefix = 'Stats: '
+
+        self.postfix = LS_EOL
+        if _item.startswith('&'):
+            self.prefix = "StatsAnd: "
+            self._item = int(_item.split("&")[1])
+        elif _item.startswith('|'):
+            self.prefix = "StatsOr: "
+            self._item = int(_item.split("|")[1])
+        else:
+            self._item = _item
+
+    def __str__(self):
+        return "{}{}{}".format(self.prefix, self._item, self.postfix)
+
+
 class LiveStatus(object):
     """
     LiveStatus class provides network access to the Live status server.
@@ -16,7 +47,6 @@ class LiveStatus(object):
         self.host = host
         self.port = int(port)
         self.max_recv = int(max_recv)
-
 
     def execute(self, query):
         """
@@ -38,7 +68,6 @@ class LiveStatus(object):
             buf = server.recv(self.max_recv)
         return answer
 
-
     def get_json(self, query):
         """
         Parse the result of a live status query as JSON.
@@ -49,12 +78,12 @@ class LiveStatus(object):
         return json.loads(self.execute(query))
 
 
-
 class Get(Action):
     """
     LiveStatus Get class.
     """
-    def run(self, table='', columns=None, filters=None, stats=None, limit=None, output_format="json"):
+    def run(self, table='', columns=None, filters=None,
+            stats=None, limit=None, output_format="json"):
         """
         The run method to be called by Stackstorm.
 
@@ -91,13 +120,11 @@ class Get(Action):
 
         return result
 
-
     def _process_columns(self, columns):
         """
         Convert columns list to livestatus formatted string.
         """
         return self._build_list('Columns: ', LS_EOL, [' '.join(columns)])
-
 
     def _process_filters(self, filters):
         """
@@ -105,24 +132,30 @@ class Get(Action):
         """
         return self._build_list('Filter: ', LS_EOL, filters)
 
-
     def _process_stats(self, stats):
         """
         Convert stats list to livestatus formatted string.
         """
-        return self._build_list('Stats: ', LS_EOL, stats)
+        formatted_stats = []
+        try:
+            for _item in stats:
+                formatted_stats.append(StatsItem(_item))
+        except (ValueError) as e:
+            LOG.error("Incorrectly formatted logic operator in query. {}".format(stats))
+        return self._build_list(items=formatted_stats)
 
-
-    def _build_list(self, prefix, postfix, items):
+    def _build_list(self, prefix=None, postfix=None, items=[]):
         """
         Loop over list items and apply a prefix/postfix to each element.
         Returns a livestatus formatted string.
         """
         tmp = ''
         for _item in items:
-            tmp += '{}{}{}'.format(prefix, _item, postfix)
+            if isinstance(_item, StatsItem):
+                tmp += "%s" % _item
+            else:
+                tmp += '{}{}{}'.format(prefix, _item, postfix)
         else:
             postfix = ''
         tmp += postfix
         return tmp
-
