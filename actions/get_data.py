@@ -39,6 +39,36 @@ class StatsItem(object):
         return "{}{}{}".format(self.prefix, self._item, self.postfix)
 
 
+class FilterItem(object):
+    """
+    The FilterItem class is used to convert logic operators to livestatus format as well as
+    return a correctly formatted string for livestatus queries.
+
+    The idea is to allow stackstorm to supply stats listed in the following manner:
+
+    ["state = 0", "host_up = 0", "&2"]
+
+    The above list would produce a LiveStatus query like the following:
+    Filter: state = 0
+    Filter: host_up = 0
+    And: 2
+    """
+    def __init__(self, _item):
+        self.prefix = 'Filter: '
+
+        self.postfix = LS_EOL
+        if _item.startswith('&'):
+            self.prefix = "And: "
+            self._item = int(_item.split("&")[1])
+        elif _item.startswith('|'):
+            self.prefix = "Or: "
+            self._item = int(_item.split("|")[1])
+        else:
+            self._item = _item
+
+    def __str__(self):
+        return "{}{}{}".format(self.prefix, self._item, self.postfix)
+
 class LiveStatus(object):
     """
     LiveStatus class provides network access to the Live status server.
@@ -130,7 +160,13 @@ class Get(Action):
         """
         Convert filters list to livestatus formatted string.
         """
-        return self._build_list('Filter: ', LS_EOL, filters)
+        formatted_filters = []
+        try:
+            for _item in filters:
+                formatted_filters.append(FilterItem(_item))
+        except (ValueError) as e:
+            LOG.error("Incorrectly formatted logic operator in query. {}".format(filters))
+        return self._build_list(items=formatted_filters)
 
     def _process_stats(self, stats):
         """
@@ -151,7 +187,7 @@ class Get(Action):
         """
         tmp = ''
         for _item in items:
-            if isinstance(_item, StatsItem):
+            if isinstance(_item, StatsItem) or isinstance(_item, FilterItem):
                 tmp += "%s" % _item
             else:
                 tmp += '{}{}{}'.format(prefix, _item, postfix)
