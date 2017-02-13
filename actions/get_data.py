@@ -32,6 +32,9 @@ class StatsItem(object):
         elif _item.startswith('|'):
             self.prefix = "StatsOr: "
             self._item = int(_item.split("|")[1])
+        elif _item == '!':
+            self.prefix = "StatsNegate:"
+            self._item = ""
         else:
             self._item = _item
 
@@ -63,6 +66,9 @@ class FilterItem(object):
         elif _item.startswith('|'):
             self.prefix = "Or: "
             self._item = int(_item.split("|")[1])
+        elif _item == '!':
+            self.prefix = "Negate:"
+            self._item = ""
         else:
             self._item = _item
 
