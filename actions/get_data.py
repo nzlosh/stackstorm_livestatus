@@ -3,6 +3,7 @@ from st2common import log as logging
 
 import socket
 import json
+import datetime
 
 LOG = logging.getLogger(__name__)
 LS_EOL = '\n'
@@ -75,14 +76,26 @@ class FilterItem(object):
     def __str__(self):
         return "{}{}{}".format(self.prefix, self._item, self.postfix)
 
+
+class TimeoutException(Exception):
+    def __init__(self, msg="Execution timeout has been exceeded."):
+        self.msg = msg
+
+    def __str__(self):
+        return repr(self.msg)
+
+
 class LiveStatus(object):
     """
     LiveStatus class provides network access to the Live status server.
     """
-    def __init__(self, host, port, max_recv=4096):
+    def __init__(self, host, port, max_recv=4096, query_max_retries=3, query_duration=5, query_retry_delay=10):
         self.host = host
         self.port = int(port)
         self.max_recv = int(max_recv)
+        self.query_max_retries = query_max_retries
+        self.query_duration = query_duration           # unit=seconds
+        self.query_retry_delay = query_retry_delay     # unit=seconds
 
     def execute(self, query):
         """
@@ -91,17 +104,44 @@ class LiveStatus(object):
 
         @query - a livestatus query.
         """
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.connect((self.host, self.port))
-        LOG.debug('Sending LiveStatus query: {}'.format(query))
-        server.send(query.encode('utf-8').rstrip() + LS_EOL)
-        # Notify server that transmission has finished.
-        server.shutdown(socket.SHUT_WR)
-        answer = ''
-        buf = server.recv(self.max_recv)
-        while buf:
-            answer += buf
-            buf = server.recv(self.max_recv)
+        answer = None
+        query_attempt = 0
+        start = int(time.time())
+
+        while query_attempt < self.query_max_retries:
+            try:
+                LOG.debug("Attempt number {}".format(query_attempt))
+                server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server.settimeout(float(self.query_duration))
+                server.connect((self.host, self.port))
+                LOG.debug('Sending LiveStatus query: {}'.format(query))
+                server.send(query.encode('utf-8').rstrip() + LS_EOL)
+                # Notify server that transmission has finished.
+                server.shutdown(socket.SHUT_WR)
+                answer = ''
+                buf = server.recv(self.max_recv)
+                while buf:
+                    answer += buf
+                    buf = server.recv(self.max_recv)
+                    if (int(time.time()) - start > self.query_duration):
+                        raise TimeoutException()
+                break
+            except socket.timeout as e:
+                LOG.info("Timeout {}/{}".format(query_attempt, self.query_max_retries))
+                query_attempt += 1
+                time.sleep(self.query_retry_delay)
+            except socket.error as e:
+                LOG.info("Socket error occurred! {}".format(type(e)))
+                query_attempt += 1
+                time.sleep(self.query_retry_delay)
+            except TimeoutException as e:
+                LOG.info("Livestatus didn't respond within the time allocated.")
+                query_attempt += 1
+                server.close()
+                time.sleep(self.query_retry_delay)
+            except Exception as e:
+                LOG.info("Unhandled error occurred: {}".format(sys.exc_info()))
+                break
         return answer
 
     def get_json(self, query):
@@ -111,7 +151,14 @@ class LiveStatus(object):
         @query - a livestatus query. The query MUST request the result
                  is returned in JSON format.
         """
-        return json.loads(self.execute(query))
+        res = None
+        try:
+            res = json.loads(self.execute(query))
+        except TypeError as e:
+            LOG.info("No data received from livestatus API")
+        except ValueError as e:
+            LOG.info("Error while deserialising JSON from livestatus API.")
+        return res
 
 
 class Get(Action):
@@ -154,7 +201,7 @@ class Get(Action):
         else:
             result = live_status.execute(query)
 
-        return result
+        return (result is not None, result)
 
     def _process_columns(self, columns):
         """
