@@ -3,7 +3,7 @@ from st2common import log as logging
 
 import socket
 import json
-import datetime
+import time
 
 LOG = logging.getLogger(__name__)
 LS_EOL = '\n'
@@ -89,13 +89,16 @@ class LiveStatus(object):
     """
     LiveStatus class provides network access to the Live status server.
     """
-    def __init__(self, host, port, max_recv=4096, query_max_retries=3, query_duration=5, query_retry_delay=10):
+    def __init__(self, host, port, max_recv=4096,
+                 query_max_retries=3,
+                 query_duration=5,
+                 query_retry_delay=10):
         self.host = host
         self.port = int(port)
         self.max_recv = int(max_recv)
-        self.query_max_retries = query_max_retries
         self.query_duration = query_duration           # unit=seconds
         self.query_retry_delay = query_retry_delay     # unit=seconds
+        self.query_max_retries = query_max_retries
 
     def execute(self, query):
         """
@@ -127,20 +130,20 @@ class LiveStatus(object):
                         raise TimeoutException()
                 break
             except socket.timeout as e:
-                LOG.info("Timeout {}/{}".format(query_attempt, self.query_max_retries))
+                LOG.error("Timeout {}/{}".format(query_attempt, self.query_max_retries))
                 query_attempt += 1
                 time.sleep(self.query_retry_delay)
             except socket.error as e:
-                LOG.info("Socket error occurred! {}".format(type(e)))
+                LOG.error("Socket error occurred! {}".format(type(e)))
                 query_attempt += 1
                 time.sleep(self.query_retry_delay)
             except TimeoutException as e:
-                LOG.info("Livestatus didn't respond within the time allocated.")
+                LOG.error("Livestatus didn't respond within the time allocated.")
                 query_attempt += 1
                 server.close()
                 time.sleep(self.query_retry_delay)
             except Exception as e:
-                LOG.info("Unhandled error occurred: {}".format(sys.exc_info()))
+                LOG.error("Unhandled error occurred: {}".format(sys.exc_info()))
                 break
         return answer
 
@@ -155,9 +158,9 @@ class LiveStatus(object):
         try:
             res = json.loads(self.execute(query))
         except TypeError as e:
-            LOG.info("No data received from livestatus API")
+            LOG.error("No data received from livestatus API")
         except ValueError as e:
-            LOG.info("Error while deserialising JSON from livestatus API.")
+            LOG.error("Error while deserialising JSON from livestatus API.")
         return res
 
 
@@ -166,7 +169,8 @@ class Get(Action):
     LiveStatus Get class.
     """
     def run(self, table='', columns=None, filters=None,
-            stats=None, limit=None, output_format="json"):
+            stats=None, limit=None, output_format="json",
+            query_max_retries=None, query_duration=None, query_retry_delay=None):
         """
         The run method to be called by Stackstorm.
 
@@ -180,7 +184,20 @@ class Get(Action):
         host = self.config['host']
         port = self.config['port']
 
-        live_status = LiveStatus(host, port)
+        extra_kwargs = {}
+        if query_max_retries is not None:
+            extra_kwargs["query_max_retries"] = query_max_retries
+        if query_duration is not None:
+            extra_kwargs["query_duration"] = query_duration
+        if query_retry_delay is not None:
+            extra_kwargs["query_retry_delay"] = query_retry_delay
+
+        result = (False, "An error occurred fetching data from Livestatus.")
+
+        live_status = LiveStatus(host, port, **extra_kwargs)
+        if live_status is None:
+            result = (False, 'Error connecting to livestatus.')
+
         query = 'GET {}{}'.format(table, LS_EOL)
 
         if columns:
@@ -195,13 +212,17 @@ class Get(Action):
         if limit:
             query += 'Limit: {}{}'.format(limit, LS_EOL)
 
+        tmp = None
         if output_format.lower() == 'json':
             query += 'OutputFormat: json{}'.format(LS_EOL)
-            result = live_status.get_json(query)
+            tmp = live_status.get_json(query)
         else:
-            result = live_status.execute(query)
+            tmp = live_status.execute(query)
 
-        return (result is not None, result)
+        if tmp is not None:
+            result = (True, tmp)
+
+        return result
 
     def _process_columns(self, columns):
         """
