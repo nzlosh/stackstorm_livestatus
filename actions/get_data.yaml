@@ -42,3 +42,7 @@
         type: integer
         description: The amount of time to wait for retrying the query.
         required: false
+    allow_empty_list:
+        type: boolean
+        description: "True: empty lists allowed, False: emtpy lists are treated as an error."
+        required: false
