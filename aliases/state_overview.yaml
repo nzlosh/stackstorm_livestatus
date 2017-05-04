@@ -5,8 +5,9 @@ action_ref: "livestatus.state_overview"
 formats:
   - "shinken service overview"
 ack:
-  enabled: false
-  format: "The command has been seen and is being processed.  The result will be posted as soon as possible"
+  enabled: true
+  format: "OK, got it.  `{{ actionalias.ref }}` will be executed.  The execution id is `{{ execution.id }}`"
+  append_url: true
 result:
   enabled: true
   format: "Standard out says {{ execution.result.result }}"

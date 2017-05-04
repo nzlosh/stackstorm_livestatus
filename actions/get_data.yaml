@@ -1,6 +1,6 @@
 ---
   name: get
-  runner_type: run-python
+  runner_type: python-script
   description: "Retrieve data using the LiveStatus API.  Reference: https://mathias-kettner.de/checkmk_livestatus.html"
   enabled: true
   entry_point: get_data.py

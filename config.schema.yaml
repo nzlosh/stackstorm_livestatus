@@ -1,6 +1,6 @@
 ---
   host:
-    decription: "Livestatus host address"
+    description: "Livestatus host address"
     type: "string"
     secret: false
     required: true
