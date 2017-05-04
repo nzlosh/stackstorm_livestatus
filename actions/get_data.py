@@ -1,20 +1,48 @@
 from st2actions.runners.pythonrunner import Action
 from st2common import log as logging
 
-import socket
 import json
 import time
+import socket
 
 LOG = logging.getLogger(__name__)
 LS_EOL = '\n'
 
 
-class StatsItem(object):
+class BaseItem(object):
+    def __init__(self,
+                 _item,
+                 prefix_base=None,
+                 prefix_add=None,
+                 prefix_or=None,
+                 prefix_not=None,
+                 postfix=None):
+        self.prefix = None
+        self.postfix = postfix
+
+        if _item.startswith('&'):
+            self.prefix = prefix_add
+            self._item = int(_item.split("&")[1])
+        elif _item.startswith('|'):
+            self.prefix = prefix_or
+            self._item = int(_item.split("|")[1])
+        elif _item == '!':
+            self.prefix = prefix_not
+            self._item = ""
+        else:
+            self.prefix = prefix_base
+            self._item = _item
+
+    def __str__(self):
+        return "{}{}{}".format(self.prefix, self._item, self.postfix)
+
+
+class StatsItem(BaseItem):
     """
     The StatsItem class is used to convert logic operators to livestatus format as well as
     return a correctly formatted string for livestatus queries.
 
-    The idea is to allow stackstorm to supply stats listed in the following manner:
+    The idea is to allow stackstorm to supply stats listed in the following form:
 
     ["state = 0", "host_up = 0", "&2"]
 
@@ -23,27 +51,22 @@ class StatsItem(object):
     Stats: host_up = 0
     StatsAnd: 2
     """
-    def __init__(self, _item):
-        self.prefix = 'Stats: '
-
-        self.postfix = LS_EOL
-        if _item.startswith('&'):
-            self.prefix = "StatsAnd: "
-            self._item = int(_item.split("&")[1])
-        elif _item.startswith('|'):
-            self.prefix = "StatsOr: "
-            self._item = int(_item.split("|")[1])
-        elif _item == '!':
-            self.prefix = "StatsNegate:"
-            self._item = ""
-        else:
-            self._item = _item
-
-    def __str__(self):
-        return "{}{}{}".format(self.prefix, self._item, self.postfix)
+    def __init__(self,
+                 _item,
+                 prefix_base="Stats: ",
+                 prefix_add="StatsAnd: ",
+                 prefix_or="StatsOr: ",
+                 prefix_not="StatsNegate:",
+                 postfix=LS_EOL):
+        super(StatsItem, self).__init__(_item,
+                                        prefix_base,
+                                        prefix_add,
+                                        prefix_or,
+                                        prefix_not,
+                                        postfix)
 
 
-class FilterItem(object):
+class FilterItem(BaseItem):
     """
     The FilterItem class is used to convert logic operators to livestatus format as well as
     return a correctly formatted string for livestatus queries.
@@ -57,24 +80,19 @@ class FilterItem(object):
     Filter: host_up = 0
     And: 2
     """
-    def __init__(self, _item):
-        self.prefix = 'Filter: '
-
-        self.postfix = LS_EOL
-        if _item.startswith('&'):
-            self.prefix = "And: "
-            self._item = int(_item.split("&")[1])
-        elif _item.startswith('|'):
-            self.prefix = "Or: "
-            self._item = int(_item.split("|")[1])
-        elif _item == '!':
-            self.prefix = "Negate:"
-            self._item = ""
-        else:
-            self._item = _item
-
-    def __str__(self):
-        return "{}{}{}".format(self.prefix, self._item, self.postfix)
+    def __init__(self,
+                 _item,
+                 prefix_base="Filter: ",
+                 prefix_add="And: ",
+                 prefix_or="Or: ",
+                 prefix_not="Negate:",
+                 postfix=LS_EOL):
+        super(StatsItem, self).__init__(_item,
+                                        prefix_base,
+                                        prefix_add,
+                                        prefix_or,
+                                        prefix_not,
+                                        postfix)
 
 
 class TimeoutException(Exception):
@@ -89,11 +107,8 @@ class LiveStatus(object):
     """
     LiveStatus class provides network access to the Live status server.
     """
-    def __init__(self, host, port, max_recv=4096,
-                 query_max_retries=5,
-                 query_duration=5,
-                 query_retry_delay=60,
-                 allow_empty_list=True):
+    def __init__(self, host, port, max_recv=4096, query_max_retries=5,
+                 query_duration=5 query_retry_delay=60, allow_empty_list=True):
         self.host = host
         self.port = int(port)
         self.max_recv = int(max_recv)
