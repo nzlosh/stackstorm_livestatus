@@ -87,12 +87,12 @@ class FilterItem(BaseItem):
                  prefix_or="Or: ",
                  prefix_not="Negate:",
                  postfix=LS_EOL):
-        super(StatsItem, self).__init__(_item,
-                                        prefix_base,
-                                        prefix_add,
-                                        prefix_or,
-                                        prefix_not,
-                                        postfix)
+        super(FilterItem, self).__init__(_item,
+                                         prefix_base,
+                                         prefix_add,
+                                         prefix_or,
+                                         prefix_not,
+                                         postfix)
 
 
 class TimeoutException(Exception):
@@ -108,7 +108,7 @@ class LiveStatus(object):
     LiveStatus class provides network access to the Live status server.
     """
     def __init__(self, host, port, max_recv=4096, query_max_retries=5,
-                 query_duration=5 query_retry_delay=60, allow_empty_list=True):
+                 query_duration=5, query_retry_delay=60, allow_empty_list=True):
         self.host = host
         self.port = int(port)
         self.max_recv = int(max_recv)
