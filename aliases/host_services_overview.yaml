@@ -1,0 +1,18 @@
+---
+name: "host_services_overview"
+description: "Host services states overview"
+action_ref: "livestatus.host_services_overview"
+formats:
+  - "livestatus {{host}} services? overview"
+ack:
+  enabled: true
+  format: "OK, I'll get in touch with LiveStatus.  The StackStorm execution id is `{{ execution.id }}`."
+  append_url: true
+result:
+  enabled: true
+  format: |
+    {% set state=["OK", "WARNING", "CRITICAL", "UNKNWON"] %}
+    {% set check=["CHECKED", "UNCHECKED"] %}
+    {% for service in execution.result.tasks[0].result.result[0][0]|sort %}
+    {{ service[0] }} *{{ state[service[1]] }}*   _({{ check[service[2]] }})_
+    {% endfor %}

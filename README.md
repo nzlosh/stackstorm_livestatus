@@ -20,8 +20,10 @@ The following actions are supported along with the arguments:
   * The author only has access to test against Shinken's LiveStatus implementation. While this should work for Nagios users, their milage may vary.
 
 ## References
+
   * https://github.com/shinken-monitoring/mod-livestatus
   * https://mathias-kettner.de/checkmk_livestatus.html
 
-## Thanks to
-https://icons8.com for the use of their radar icon ![radar icon](icon.png)
+## Legal
+
+This packs icon was kindly provided by https://icons8.com.

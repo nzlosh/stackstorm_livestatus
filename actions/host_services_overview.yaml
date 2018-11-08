@@ -1,0 +1,11 @@
+---
+name: "host_services_overview"
+description: "Get the a hosts services state."
+runner_type: "action-chain"
+entry_point: "chains/host_services_overview.yaml"
+enabled: true
+parameters:
+    host:
+      type: string
+      description: Host name to query.
+      required: true

@@ -1,0 +1,35 @@
+---
+  name: execute_command
+  runner_type: python-script
+  description: "Execute an external command using the LiveStatus API.  Reference: https://mathias-kettner.de/checkmk_livestatus.html"
+  enabled: true
+  entry_point: exec_command.py
+  parameters:
+    host_name:
+      type: string
+      description: The table to be queried.
+      required: true
+    sticky:
+        type: boolean
+        description: Cause the command to apply until the state changes to OK.
+        required: false
+        default: true
+    notify:
+        type: boolean
+        description: Send a notification messsage.
+        default: True
+    persistent:
+        type: boolean
+        description: Apply operation to persist between monitoring daemon restarts.
+        required: false
+        default: true
+    author:
+        type: string
+        description: the name of the person who ran the command.
+        required: true
+        default: "Unknown"
+    comment:
+        type: string
+        description: the comment to apply to the operation.
+        required: true
+        default: "No comment provided."

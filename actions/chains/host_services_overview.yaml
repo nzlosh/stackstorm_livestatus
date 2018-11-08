@@ -1,0 +1,12 @@
+---
+  chain:
+    -
+      name: "host_services_overview"
+      ref: "livestatus.get"
+      parameters:
+        table: hosts
+        columns:
+          - services_with_state
+        filters:
+          - "name = {{ host }}"
+  default: "host_services_overview"

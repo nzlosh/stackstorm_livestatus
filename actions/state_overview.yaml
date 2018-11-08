@@ -4,3 +4,7 @@ description: "Return the count of service checks by state (OK, WARNING, CRITICAL
 runner_type: "action-chain"
 entry_point: "chains/state_overview.yaml"
 enabled: true
+parameters:
+    skip_notify:
+        default:
+            - overview_stats

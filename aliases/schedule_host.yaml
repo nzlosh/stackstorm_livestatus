@@ -1,0 +1,15 @@
+---
+name: "schedule_host_downtime"
+description: "Schedule host downtime."
+action_ref: "livestatus.schedule_host_downtime"
+formats:
+  - display: "sd <host> [for <duration>]|from <start> to <end>| at <start> to <end>|in <start>]]"
+    representation:
+      - "sd {{host}} ((for {{duration}})|((from|at|in) {{start}} (to|for) {{end}}))?"
+ack:
+  enabled: true
+  format: "Contacting LiveStatus.  StackStorm execution id `{{ execution.id }}`."
+  append_url: true
+result:
+  enabled: true
+  format: "{{ execution }}"

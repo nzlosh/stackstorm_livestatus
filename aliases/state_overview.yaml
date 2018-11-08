@@ -1,18 +1,23 @@
 ---
 name: "state_overview"
-description: "Get an overview of Service states via ChatOps"
+description: "Get an overview of Service states from LiveStatus"
 action_ref: "livestatus.state_overview"
 formats:
-  - "shinken service overview"
+  - "livestatus service overview"
 ack:
-  enabled: true
-  format: "OK, got it.  `{{ actionalias.ref }}` will be executed.  The execution id is `{{ execution.id }}`"
+  enabled: false
+  format: "StackStorm is working on your request.  The execution id is `{{ execution.id }}`."
   append_url: true
 result:
-  enabled: true
+  enabled: false
   format: |
-    {% for task in execution.result.tasks %}
-    {% for result in task.result %}
-    {{ ["OK","WARNING","CRITICAL","UNKNOWN"][result[0]] }} = {{ result[1] }}
-    {% endfor %}
-    {% endfor %}
+      {% set state_name=["OK", "WARNING", "CRITICAL", "UNKNOWN"] %}
+      {% for task in execution.result.tasks %}
+      {% for state in task.result.result|sort %}
+      *{{ state_name[state[0]] }}* {{ state[1] }}
+      {% endfor %}
+      {% endfor %}
+  extra:
+    slack:
+      color: "#4842f4"
+      title: Livestatus Service Overview
