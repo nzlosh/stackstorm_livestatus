@@ -1,0 +1,66 @@
+# {{ pack["pack.yaml"].name }} integration pack v{{ pack["pack.yaml"].version }}
+
+> {{ pack["pack.yaml"].description }}
+{{ pack["pack.yaml"].author }} <{{ pack["pack.yaml"].email }}>
+
+
+## Configuration
+
+The following options are required to be configured for the pack to work correctly.
+
+| Option | Type | Required | Secret | Description |
+|---|---|---|---|---|
+{% for key, value in pack["config.schema.yaml"].items() -%}
+| `{{ key }}` | {{ value.type }} | {{ value.required }} | {{ value.secret }} | {{ value.description }} |
+{% endfor %}
+
+
+## Actions
+
+{% if actions | length > 0 %}
+The pack provides the following actions:
+
+{% for key, value in actions.items() -%}
+### {{ value.name }}
+_{{ value.description }}_
+| Parameter | Type | Required | Secret | Description |
+|---|---|---|---|--|
+{% for p_key, p_value in value.parameters.items() -%}
+| `{{ p_key }}` | {{ p_value.type }} | {{ p_value.required }} | {{ p_value.secret }} | _{{ p_value.description }}_ |
+{% endfor -%}
+{% endfor %}
+{% else %}
+There are no actions available for this pack.
+{% endif %}
+
+
+## Sensors
+{% if sensors | length > 0 %}
+The following sensors and triggers are provided:
+{% for key, value in sensors.items() %}
+### Class {{ value.class_name }}
+_{{ value.description }}_
+{% for trigger in value.trigger_types -%}
+| Trigger Name | Description |
+|---|---|
+| `{{ trigger.name }}` | _{{ trigger.description }}_ |
+{% endfor %}
+{% endfor %}
+{% else %}
+There are no sensors available for this pack.
+{% endif %}
+
+
+## Limitations
+
+  * The query limit isn't supported under Shinken's LiveStatus implementation.
+  * The author only has access to test against Shinken's LiveStatus implementation. While this should work for Nagios users, their milage may vary.
+
+## References
+
+  * https://github.com/shinken-monitoring/mod-livestatus
+  * https://mathias-kettner.de/checkmk_livestatus.html
+
+## Legal
+
+This packs icon was kindly provided by https://icons8.com.
