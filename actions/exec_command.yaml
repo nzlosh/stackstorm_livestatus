@@ -16,7 +16,7 @@
         default: true
     notify:
         type: boolean
-        description: Send a notification messsage.
+        description: Send a notification message.
         default: True
     persistent:
         type: boolean

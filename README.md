@@ -26,7 +26,7 @@ _Execute an external command using the LiveStatus API.  Reference: https://mathi
 |---|---|---|---|---|
 | `host_name` | string | True | default | _The table to be queried._ |
 | `sticky` | boolean | False | default | _Cause the command to apply until the state changes to OK._ |
-| `notify` | boolean | default | default | _Send a notification messsage._ |
+| `notify` | boolean | default | default | _Send a notification message._ |
 | `persistent` | boolean | False | default | _Apply operation to persist between monitoring daemon restarts._ |
 | `author` | string | True | default | _the name of the person who ran the command._ |
 | `comment` | string | True | default | _the comment to apply to the operation._ |
@@ -47,10 +47,10 @@ _Retrieve data using the LiveStatus API.  Reference: https://mathias-kettner.de/
 | `stats` | array | False | default | _A list of basic statistical operations to run._ |
 | `limit` | string | False | default | _Limit the number of rows being displayed in the result set._ |
 | `output_format` | string | False | default | _Result format, JSON, Python or CSV. (Only JSON is implemented)_ |
-| `query_max_retries` | integer | False | default | _The number of times a query should be retried before abandonning the request._ |
+| `query_max_retries` | integer | False | default | _The number of times a query should be retried before abandoning the request._ |
 | `query_duration` | integer | False | default | _The amount of time in seconds for a query to run before cancelling it._ |
 | `query_retry_delay` | integer | False | default | _The amount of time to wait for retrying the query._ |
-| `allow_empty_list` | boolean | False | default | _True: empty lists allowed, False: emtpy lists are treated as an error._ |
+| `allow_empty_list` | boolean | False | default | _True: empty lists allowed, False: empty lists are treated as an error._ |
 ### state_overview
 _Return the count of service checks by state (OK, WARNING, CRITICAL or UNKNOWN)._
 
@@ -80,7 +80,7 @@ There are no sensors available for this pack.
 ## Limitations
 
   * The query limit isn't supported under Shinken's LiveStatus implementation.
-  * The author only has access to test against Shinken's LiveStatus implementation. While this should work for Nagios users, their milage may vary.
+  * The author only has access to test against Shinken's LiveStatus implementation. While this should work for Nagios users, there is not testing performed against it.
 
 ## References
 

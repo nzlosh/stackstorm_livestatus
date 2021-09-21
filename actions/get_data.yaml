@@ -32,7 +32,7 @@
       default: json
     query_max_retries:
         type: integer
-        description: The number of times a query should be retried before abandonning the request.
+        description: The number of times a query should be retried before abandoning the request.
         required: false
     query_duration:
         type: integer
@@ -44,5 +44,5 @@
         required: false
     allow_empty_list:
         type: boolean
-        description: "True: empty lists allowed, False: emtpy lists are treated as an error."
+        description: "True: empty lists allowed, False: empty lists are treated as an error."
         required: false
